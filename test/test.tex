@@ -1,0 +1,28 @@
+\documentclass[a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage[spanish]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage[round, sort]{natbib}
+
+%Comandos
+\newcommand{\salto}{\par \medskip}
+
+%Titulo
+\title{Carlos}
+\author{Aguilera}
+
+\begin{document}
+	\begin{align}
+			p \to q \label{eq:first}
+	\end{align}
+	\begin{align}
+			p \to q \label{eq:second}
+			\label{eq:tercero}
+			\ref{eq:first} 
+	\end{align}
+
+\end{document}
+
