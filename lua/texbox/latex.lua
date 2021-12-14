@@ -46,6 +46,7 @@ end
 M.add_labels = function ()
 	local command = vim.fn.input("Titulo de la referencia >> ")
 	api.nvim_put({"\\label{"..command.."}"}, "", true, true)
+	vim.cmd('startinsert')
 end
 
 
