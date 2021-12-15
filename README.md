@@ -2,7 +2,13 @@
 LaTex + vim = :fire:
 
 ## Funciones
-| Comando Vim | Comando lua                                            | Descripción                                                                             |
-|-------------|--------------------------------------------------------|-----------------------------------------------------------------------------------------|
-| TXgetlabels | lua require'texbox.telescope_latex'.labels_telescope() | Lista de etiquetas. Al pulsar <CR> introduce la referencia de la etiqueta seleccionada. |
-| TXaddlabels | lua require'texbox.latex'.add_labels()                 | Añade una etiqueta.                                                                     |
+| Comando Vim      | Descripción                                                                             |
+|------------------|-----------------------------------------------------------------------------------------|
+| TXgetlabels      | Lista de etiquetas. Al pulsar <CR> introduce la referencia de la etiqueta seleccionada. |
+| TXaddlabels      | Añade una etiqueta.                                                                     |
+| TXextractsection | Extrae la sección seleccionada en un documento nuevo.                                   |
+
+
+### Extraer secciones
+Para mejorar esta función pueden implementarse:
+1. Que el título del documento sea el de la sección
