@@ -102,4 +102,34 @@ M.create_document = function (text)
 	api.nvim_buf_set_lines(new_buf,-1,-1,false,{"\\end{document}"})
 end
 
+-- new_command >
+-- 1. Coge el texto del visual mode/yank text
+-- 2. Preguntar por el comando nuevo.
+-- 3. Añadir \newcommand{$name}{$comando}
+M.new_command = function ()
+	-- Obtiene el preambulo. Lo suyo es sacar esto en forma de función
+	local parser = vim.treesitter.get_parser(bufnr, "latex")
+	local root = parser:parse()[1]:root()
+	local query_string = "(environment) @env"
+	local query = vim.treesitter.parse_query('latex',query_string)
+	local envs = {}
+	local counter = 1
+	for _,match,_ in query:iter_matches(root,bufnr, 0, -1) do
+		for _, node in pairs(match) do
+			envs[counter] = node
+			counter = counter+1
+		end
+	end
+	local end_row = tonumber(tostring(ts.get_node_range(envs[1])))+1
+	-- Obtiene el texto copiado
+	local yank_text = vim.fn.getreg('"0')
+	local current_pos = api.nvim_win_get_cursor(0)
+	local command = vim.fn.input("Nombre del comando a importar >> ")
+	local return_text = "\\newcommand{\\"..command.."}{"..yank_text.."}"
+	api.nvim_win_set_cursor(0,{end_row,0})
+	vim.cmd('normal O '..return_text)
+	vim.cmd(':norm! =j')
+	api.nvim_win_set_cursor(0,current_pos)
+end
+
 return M
