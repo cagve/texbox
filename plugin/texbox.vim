@@ -7,3 +7,5 @@ command! TXtelescopelabels lua require'texbox'.telescope_labels()
 command! TXaddlabels lua require'texbox'.add_labels()
 command! TXextractsection lua require'texbox'.extract_section()
 command! TXnewcommand lua require'texbox'.new_command()
+command! TXaddconceal lua require'texbox'.add_conceal()
+

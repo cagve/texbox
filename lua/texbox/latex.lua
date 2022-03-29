@@ -110,8 +110,8 @@ M.new_command = function ()
 	-- Obtiene el preambulo. Lo suyo es sacar esto en forma de función
 	local parser = vim.treesitter.get_parser(bufnr, "latex")
 	local root = parser:parse()[1]:root()
-	local query_string = "(environment) @env"
-	local query = vim.treesitter.parse_query('latex',query_string)
+	local query_string = "(generic_environment) @env"
+	local query = vim.treesitter.parse_query('latex', query_string)
 	local envs = {}
 	local counter = 1
 	for _,match,_ in query:iter_matches(root,bufnr, 0, -1) do
@@ -122,14 +122,33 @@ M.new_command = function ()
 	end
 	local end_row = tonumber(tostring(ts.get_node_range(envs[1])))+1
 	-- Obtiene el texto copiado
-	local yank_text = vim.fn.getreg('"0')
+	local yank_text = string.gsub(vim.fn.getreg('"0'),"\n"," ")
 	local current_pos = api.nvim_win_get_cursor(0)
 	local command = vim.fn.input("Nombre del comando a importar >> ")
 	local return_text = "\\newcommand{\\"..command.."}{"..yank_text.."}"
+	vim.cmd("%s/"..yank_text.."/\\"..command)
 	api.nvim_win_set_cursor(0,{end_row,0})
+	print("New command "..command.." does "..yank_text)
 	vim.cmd('normal O '..return_text)
 	vim.cmd(':norm! =j')
 	api.nvim_win_set_cursor(0,current_pos)
+	local conceal = vim.fn.input("Quieres añadir conceal?[Yy/Nn] ")
+
+	if conceal ~= nil then
+		-- M.add_conceal(string.gsub("\\"..command,"\\","\\\\"))
+		M.add_conceal("\\\\"..command)
+	end
+end
+
+M.add_conceal = function (command)
+	if command==nil then
+		command = string.gsub(string.gsub(vim.fn.getreg('"0'),"\n"," "),"\\","\\\\")
+	end
+	local conceal_icon = vim.fn.input("Comando a mostrar cuando se escriba "..command.." >> ")
+	-- TODO Ahora mismo no distingue si estas o no en mathzone
+	api.nvim_command('syntax match newcommand "'..command..'"')
+	api.nvim_command('syntax match newcommand "'..command..'" conceal cchar='..conceal_icon..' containedin=texMathCmd')
+	api.nvim_command('highlight! link newcommand texMathCmd')
 end
 
 return M

@@ -12,6 +12,10 @@ function table.merge(t1, t2)
    return t1
 end
 
+local function add_conceal()
+	latex.add_conceal()
+end
+
 local function telescope_labels()
 	telescope.labels_telescope()
 end
@@ -35,6 +39,7 @@ return {
 	extract_section = extract_section,
 	telescope_labels = telescope_labels,
 	add_labels = add_labels,
+	add_conceal = add_conceal,
 	new_command = new_command
 }
 
