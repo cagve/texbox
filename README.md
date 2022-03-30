@@ -20,5 +20,5 @@ Para mejorar esta función pueden implementarse:
 
 ## TODO (problemas)
 1. [New] Extract visual text
-1. [FIX] Add_conceal >> Cuando el comando que quiero crear es un \word no detecta ninguno porque tendría que trasformarse en \\word.
-2. [F:Extract section] Archivos que estén separados.
+2. [FIX] Add_conceal >> Cuando el comando que quiero crear es un \word no detecta ninguno porque tendría que trasformarse en \\word.
+3. [F:Extract section] Archivos que estén separados.

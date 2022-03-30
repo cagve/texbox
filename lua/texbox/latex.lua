@@ -5,7 +5,7 @@ local ts = require('nvim-treesitter.ts_utils')
 -- local ts_query = require('vim.treesitter.query')
 
 local latex_query ={
-	label = "(label_definition (word) @label_title)",
+	label = "(label_definition (curly_group_text (text (word) @label_title)))",
 	ref = "(label_reference (word) @reference_title)"
 }
 
@@ -22,7 +22,6 @@ end
 M.get_latex_element = function(query_string)
 	local parser = vim.treesitter.get_parser(bufnr, "latex")
 	local root = parser:parse()[1]:root()
-
 	local query = vim.treesitter.parse_query('latex', query_string)
 	local result = {}
 	local counter = 1
