@@ -53,7 +53,7 @@ M.get_preamble = function ()
 	local parser = vim.treesitter.get_parser(bufnr, "latex")
 	local root = parser:parse()[1]:root()
 
-	local query_string = "(environment) @env"
+	local query_string = "(generic_environment) @env"
 	local query = vim.treesitter.parse_query('latex',query_string)
 	local envs = {}
 	local counter = 1
@@ -134,7 +134,7 @@ M.new_command = function ()
 	api.nvim_win_set_cursor(0,current_pos)
 	local conceal = vim.fn.input("Quieres añadir conceal?[Yy/Nn] ")
 
-	if conceal ~= nil then
+	if conceal == 'y' then
 		-- M.add_conceal(string.gsub("\\"..command,"\\","\\\\"))
 		M.add_conceal("\\\\"..command)
 	end

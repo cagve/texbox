@@ -12,18 +12,6 @@ function table.merge(t1, t2)
    return t1
 end
 
-local function add_conceal()
-	latex.add_conceal()
-end
-
-local function telescope_labels()
-	telescope.labels_telescope()
-end
-
-local function add_labels()
-	latex.add_labels()
-end
-
 local function extract_section()
 	local preamble = latex.get_preamble()
 	local document = latex.get_section()
@@ -31,15 +19,7 @@ local function extract_section()
 	latex.create_document(text)
 end
 
-local function new_command()
-	latex.new_command()
-end
-
 return {
-	extract_section = extract_section,
-	telescope_labels = telescope_labels,
-	add_labels = add_labels,
-	add_conceal = add_conceal,
-	new_command = new_command
+	extract_section = extract_section
 }
 

@@ -7,7 +7,8 @@ LaTex + vim = :fire:
 | TXgetlabels      | Lista de etiquetas. Al pulsar <CR> introduce la referencia de la etiqueta seleccionada. |
 | TXaddlabels      | Añade una etiqueta.                                                                     |
 | TXextractsection | Extrae la sección seleccionada en un documento nuevo.                                   |
-| TXnewcommand     | Crea un nuevo comando en el preambulo
+| TXnewcommand     | Crea un nuevo comando en el preambulo y te pregunta si quieres crear un conceal         |
+| TXaddconceal     | Crea un nuevo conceal                                                                   |
 
 
 ### Extraer secciones
@@ -18,6 +19,6 @@ Para mejorar esta función pueden implementarse:
 4. Problemas con referencias cruzadas. Se debería eliminar o algo
 
 ## TODO (problemas)
-1. Archivos que estén separados.
-2. Mejorar como obtener el preambulo función `lua require'texbox'.get_preamble()`.
-3. El archivo main con todas las funciones se debe mejorar.
+1. [New] Extract visual text
+1. [FIX] Add_conceal >> Cuando el comando que quiero crear es un \word no detecta ninguno porque tendría que trasformarse en \\word.
+2. [F:Extract section] Archivos que estén separados.
