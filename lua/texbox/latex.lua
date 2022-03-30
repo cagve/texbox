@@ -12,6 +12,14 @@ local latex_query ={
 
 local M = {}
 
+-- Devuelve una tabla de líneas
+M.get_visual_text = function ()
+  local start_col = vim.fn.getpos("'<")[2]
+  local end_col = vim.fn.getpos("'>")[2]+1
+  local text = vim.api.nvim_buf_get_lines(0,start_col,end_col, false)
+  return text
+end
+
 M.is_tex = function ()
 	if(vim.bo.filetype == 'tex') then
 		return true
