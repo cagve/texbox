@@ -1,7 +1,14 @@
+package.loaded['texbox.latex'] = nil
 local bufnr = 0
 local api = vim.api
 local ts = require('nvim-treesitter.ts_utils')
 
+function table.merge(t1, t2)
+   for _,v in ipairs(t2) do
+      table.insert(t1, v)
+   end
+   return t1
+end
 
 local latex_query ={
 	label = "(label_definition (curly_group_text (text (word) @label_title)))",
@@ -120,10 +127,43 @@ M.get_section = function () -- NO FUNCIONA 2 VECES
 	end
 end
 
+M.extract_section = function ()
+	local preamble = M.get_preamble()
+	local document = M.get_section()
+	local text = table.merge(preamble,document)
+	M.create_document(text)
+end
+
+M.extract_visual_text = function ()
+	local preamble = M.get_preamble()
+	local visual_text = M.get_visual_text()
+	local text = table.merge(preamble,visual_text)
+	M.create_document(text)
+end
+
 M.create_document = function (text)
 	local name = vim.fn.input("Nombre del archivo tex >> ")
+	local path = ""
+	local split = vim.split(name,"/")
+	local file = split[#split]
+	if string.find(file,".tex") == nil then
+		file = file..".tex"
+	end
+	table.remove(split,#split)
+	for _,k in pairs(split) do
+		if path == "" then
+			path = k
+		else
+			path = path.."/"..k
+		end
+	end
+	-- If absolute path
+	if split[1]=="" then
+		path = "/"..path
+	end
+
 	local new_buf = api.nvim_create_buf(true,false)
-	api.nvim_buf_set_name(new_buf,name..".tex")
+	api.nvim_buf_set_name(new_buf,path.."/"..file)
 	api.nvim_buf_set_lines(new_buf,0,-1,false, text)
 	api.nvim_buf_set_option(new_buf,"filetype","tex")
 	api.nvim_buf_set_lines(new_buf,-1,-1,false,{"\\end{document}"})
