@@ -1,5 +1,6 @@
 local pickers      = require "telescope.pickers"
 local latex        = require 'texbox.latex'
+local symbols	   = require 'texbox.symbols'
 local finders      = require "telescope.finders"
 local actions      = require 'telescope.actions'
 local action_state = require 'telescope.actions.state'
@@ -40,5 +41,22 @@ M.add_labels = function(prompt_bufnr)
 end
 
 
+M.latex_symbols = function (opts)
+	opts = opts or {}
+	pickers.new({
+		sorter = conf.generic_sorter(opts),
+		prompt_title = "Latex symbols",
+		finder = finders.new_table({
+			results = symbols,
+			entry_maker = function(entry)
+				return {
+					value = entry.value,
+					display = entry.name.." > "..entry.symbol,
+					ordinal = entry.name,
+				}
+			end
+		}),
+	}):find()
+end
 
 return M
