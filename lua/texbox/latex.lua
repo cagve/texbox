@@ -2,7 +2,6 @@ local bufnr = 0
 local api = vim.api
 local ts = require('nvim-treesitter.ts_utils')
 
--- local ts_query = require('vim.treesitter.query')
 
 local latex_query ={
 	label = "(label_definition (curly_group_text (text (word) @label_title)))",
@@ -123,20 +122,21 @@ M.new_command = function ()
 	-- Obtiene el texto copiado
 	local yank_text = string.gsub(vim.fn.getreg('"0'),"\n"," ")
 	local current_pos = api.nvim_win_get_cursor(0)
-	local command = vim.fn.input("Nombre del comando a importar >> ")
+	local command = vim.fn.input("Command name >>")
 	local return_text = "\\newcommand{\\"..command.."}{"..yank_text.."}"
-	vim.cmd("%s/"..yank_text.."/\\"..command)
+	yank_text = yank_text:gsub('\\', '\\\\')
+	vim.cmd("%s/"..yank_text.."/\\\\"..command)
 	api.nvim_win_set_cursor(0,{end_row,0})
 	print("New command "..command.." does "..yank_text)
 	vim.cmd('normal O '..return_text)
 	vim.cmd(':norm! =j')
 	api.nvim_win_set_cursor(0,current_pos)
-	local conceal = vim.fn.input("Quieres añadir conceal?[Yy/Nn] ")
+	-- local conceal = vim.fn.input("Quieres añadir conceal?[Yy/Nn] ")
 
-	if conceal == 'y' then
-		-- M.add_conceal(string.gsub("\\"..command,"\\","\\\\"))
-		M.add_conceal("\\\\"..command)
-	end
+	-- if conceal == 'y' then
+	-- 	-- M.add_conceal(string.gsub("\\"..command,"\\","\\\\"))
+	-- 	M.add_conceal("\\\\"..command)
+	-- end
 end
 
 M.add_conceal = function (command)

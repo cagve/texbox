@@ -9,14 +9,14 @@ local q = require('vim.treesitter.query')
 local t = require('vim.treesitter.languagetree')
 local M = {}
 
-M.get_bib = function()
+M.get_bib = function ()
 	--TODO check if file exists
 	local bib = vim.api.nvim_get_var("bib_file")
 	local lines = {}
 	for line in io.lines(bib) do
 		lines[#lines + 1] = line
 	end
-	return table.concat(lines, '\n')
+	return table.concat(lines,'\n')
 end
 
 local query_list = {
@@ -26,48 +26,48 @@ local query_list = {
 	key = "(entry (key_brace)@keybrace)" -- Need a entry as source
 }
 
-M.get_data = function(source, querystr)
+M.get_data = function (source, querystr)
 	local parser = vim.treesitter.get_string_parser(source, "bibtex")
 	local tree = parser:parse()[1]
 	local root = tree:root()
 	local query = vim.treesitter.parse_query('bibtex', querystr)
 	local result = {}
 	local counter = 1
-	for _, match, _ in query:iter_matches(root, source, 0, -1) do
+	for _,match,_ in query:iter_matches(root,source, 0, -1) do
 		for _, node in pairs(match) do
-			result[counter] = q.get_node_text(node, source)
-			counter = counter + 1
+			result[counter] = q.get_node_text(node,source)
+			counter = counter+1
 		end
 	end
 	return result
 end
 
-M.get_entry_by_key = function(source, key)
-	local querystr = '(entry (key_brace) @keybrace(#match? @keybrace "' .. key .. '"))@entry'
+M.get_entry_by_key = function (source, key)
+	local querystr = '(entry (key_brace) @keybrace(#match? @keybrace "'..key..'"))@entry'
 	local parser = vim.treesitter.get_string_parser(source, "bibtex")
 	local tree = parser:parse()[1]
 	local root = tree:root()
 	local query = vim.treesitter.parse_query('bibtex', querystr)
 	local result = {}
 	local counter = 1
-	for _, match, _ in query:iter_matches(root, source, 0, -1) do
+	for _,match,_ in query:iter_matches(root,source, 0, -1) do
 		for _, node in pairs(match) do
 			-- print(vim.inspect(q.get_node_text(node,bibfile)))
-			result[counter] = q.get_node_text(node, source)
-			counter = counter + 1
+			result[counter] = q.get_node_text(node,source)
+			counter = counter+1
 		end
 	end
 	return result
 end
 
-M.bibtex_to_telescope = function(source)
+M.bibtex_to_telescope = function (source)
 	local entries = M.get_data(source, query_list["entries"])
-	local telescope_entry = {}
+	local telescope_entry ={}
 	for index, entry in ipairs(entries) do
 		local row = {}
 		row[1] = M.get_data(entry, query_list["key"])[1]
-		row[2] = M.get_data(entry, query_list["title"])[2]:gsub("{", ""):gsub("}", "")
-		row[3] = M.get_data(entry, query_list["author"])[2]:gsub("{", ""):gsub("}", "")
+		row[2] = M.get_data(entry, query_list["title"])[2]:gsub("{",""):gsub("}","")
+		row[3] = M.get_data(entry, query_list["author"])[2]:gsub("{",""):gsub("}","")
 		telescope_entry[index] = row
 	end
 	return telescope_entry
@@ -117,35 +117,35 @@ M.telescope = function(bib, opts)
 	}):find()
 end
 
-M.check_if_exists = function(lines, pattern)
-	for _, line in ipairs(lines) do
+M.check_if_exists = function (lines, pattern)
+	for _,line in ipairs(lines) do
 		if string.find(line, pattern) then
-			return true, line
+			return  true, line
 		end
 	end
 	return false, nil
 end
 
-M.add_to_bib = function(entry)
+M.add_to_bib = function (entry)
 	local buf = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-	local flag, l = M.check_if_exists(buf, "bibliography")
-	if flag and vim.api.nvim_buf_get_option(0, 'filetype') == 'tex' then
-		local file = string.match(l, '{.+}'):gsub("{", ""):gsub("}", "") .. ".bib"
+	local flag,l = M.check_if_exists(buf, "bibliography")
+	if flag and vim.api.nvim_buf_get_option(0,'filetype') == 'tex' then
+		local file = string.match(l, '{.+}'):gsub("{",""):gsub("}","")..".bib"
 		local lines = {}
 		for line in io.lines(file) do
 			lines[#lines + 1] = line
 		end
-		table.concat(lines, '\n')
-		if M.check_if_exists(lines, entry[1]) then
-			print("Entry exists")
-			print(":)")
+		table.concat(lines,'\n')
+		if M.check_if_exists(lines, entry[1])then
+			print("Entry exists :)")
+			print(entry[1])
 			return
 		end
 		file = io.open(file, "a")
 		io.output(file)
 		io.write(entry[2])
 		io.close(file)
-		print("New bib entry: ")
+		print("New bib entry :) ")
 		print(entry[2])
 	else
 		print("Not bib file found")
@@ -153,7 +153,7 @@ M.add_to_bib = function(entry)
 	end
 end
 
-M.run_telescope = function()
+M.run_telescope = function ()
 	local bib = M.get_bib()
 	M.telescope(bib)
 end
