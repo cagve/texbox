@@ -32,7 +32,7 @@ function! s:Test()
 py3 << EOF
 from epistemictree import rules as rl
 premises = "]]..premises..[[".split(',')
-print(rl.test_theorem(']]..conclusion..[[', premises))
+print(rl.run_tableau(']]..conclusion..[[', premises))
 EOF
 endfunction
 
@@ -81,7 +81,7 @@ M.get_counter_model = function ()
 	vim.api.nvim_buf_set_lines(0, current_pos[1]+1, current_pos[1]+1, true, tikz_lines)
 end
 
-M.get_tableaux =function ()
+M.get_tableau =function ()
 	local dotfile = '/home/karu/tree.dot'
 	local command = 'dot2tex -ftikz '..dotfile
 	local handle = io.popen(command)
@@ -121,7 +121,7 @@ end
 
 M.run_tree = function ()
 	M.run_tableaux()
-	M.get_tableaux()
+	M.get_tableau()
 end
 
 return M

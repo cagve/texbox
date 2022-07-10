@@ -21,11 +21,6 @@ M.labels_telescope = function (opts)
 				actions.close(prompt_bufnr)
 				local selection = action_state.get_selected_entry()[1]
 				api.nvim_command('/'..selection)
-				-- local column = api.search(selection)
-				-- local row = search(selection,e)
-				-- api.nvim_win_set_cursor(0,{end_row,0})
-				-- local result = "\\ref{"..selection[1].."}"
-				-- vim.api.nvim_put({result}, "", true, true)
 			end)
 			map("n", "<C-a>", M.add_labels)
 			map("i", "<C-a>", M.add_labels)
