@@ -8,7 +8,6 @@ local conf         = require 'telescope.config'.values
 local api = vim.api
 
 local M = {}
-
 M.labels_telescope = function (opts)
 	opts = opts or {}
 	pickers.new({
@@ -51,6 +50,51 @@ M.latex_symbols = function (opts)
 				}
 			end
 		}),
+	}):find()
+end
+
+M.print_info = function (opts)
+    opts = opts or {}
+	pickers.new({
+		sorter = conf.generic_sorter(opts),
+		prompt_title = "Bibtex entries",
+		finder = finders.new_table({
+			results = symbols,
+			entry_maker = function(entry)
+				return {
+					value = entry.value,
+					display = entry.name.." > "..entry.symbol,
+					ordinal = entry.name,
+				}
+			end
+		}),
+	}):find()
+end
+
+M.telescope_new_commands = function (opts)
+    opts = opts or {}
+	pickers.new({
+		sorter = conf.generic_sorter(opts),
+		prompt_title = "New commands",
+		finder = finders.new_table({
+            results = latex.get_new_commands(),
+			entry_maker = function(entry)
+                local len = string.len(entry[1])
+                local width = 40
+                local spaces = string.rep(" ", width-len)
+				return {
+					value = entry[1],
+					display = entry[1]..spaces..entry[2],
+					ordinal = entry[1],
+				}
+			end
+        }),
+		attach_mappings = function(prompt_bufnr,map)
+			actions.select_default:replace(function()
+				actions.close(prompt_bufnr)
+			end)
+			return true
+		end,
 	}):find()
 end
 

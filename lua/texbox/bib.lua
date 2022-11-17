@@ -73,6 +73,51 @@ M.bibtex_to_telescope = function (source)
 	return telescope_entry
 end
 
+
+M.telescope_default = function(bib, opts)
+	local displayer = entry_display.create({
+		separator = " ",
+		items = {
+			{ width = 80 },
+			{ width = 18 },
+			{ remaining = true },
+		},
+	})
+	local make_display = function(entry)
+		return displayer({
+			entry.title,
+			entry.author,
+		})
+	end
+	opts = opts or {}
+	pickers.new(opts, {
+		prompt_title = "Bib entry",
+		finder = finders.new_table {
+			results = M.bibtex_to_telescope(bib),
+			entry_maker = function(entry)
+				return {
+					ordinal = entry[2] .. entry[3],
+					display = make_display,
+
+					key = entry[1],
+					title = entry[2],
+					author = entry[3],
+				}
+			end
+		},
+		sorter = conf.generic_sorter(opts),
+		attach_mappings = function(prompt_bufnr, map)
+			actions.select_default:replace(function()
+				actions.close(prompt_bufnr)
+				local selection = action_state.get_selected_entry()
+                local text = selection.author.." - "..selection.title
+				vim.api.nvim_put({text}, "", false, true)
+			end)
+			return true
+		end,
+	}):find()
+end
+
 M.telescope = function(bib, opts)
 	local displayer = entry_display.create({
 		separator = " ",
@@ -128,7 +173,7 @@ end
 
 M.add_to_bib = function (entry)
 	local buf = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-	local flag,l = M.check_if_exists(buf, "bibliography")
+	local flag,l = M.check_if_exists(buf, "bibliography{")
 	if flag and vim.api.nvim_buf_get_option(0,'filetype') == 'tex' then
 		local file = string.match(l, '{.+}'):gsub("{",""):gsub("}","")..".bib"
 		local lines = {}
@@ -141,21 +186,31 @@ M.add_to_bib = function (entry)
 			print(entry[1])
 			return
 		end
+		print("New bib entry :) ")
+		print(entry[2])
+        local ans = vim.fn.input("Confirm? [Y/n]: ")
+        if ans ~= 'y' then
+            print("Bib entry not added")
+           return 
+        end
+        print("Bib entry added")
 		file = io.open(file, "a")
 		io.output(file)
 		io.write(entry[2])
 		io.close(file)
-		print("New bib entry :) ")
-		print(entry[2])
 	else
 		print("Not bib file found")
 		return flag
 	end
 end
 
-M.run_telescope = function ()
+M.run_telescope = function (fun)
 	local bib = M.get_bib()
-	M.telescope(bib)
+    if fun == "1" then
+        M.telescope(bib)
+    else
+        M.telescope_default(bib)
+    end
 end
 
 return M

@@ -5,7 +5,8 @@ local ts = require('nvim-treesitter.ts_utils')
 
 local latex_query ={
 	label = "(label_definition (curly_group_text (text (word) @label_title)))",
-	ref = "(label_reference (word) @reference_title)"
+	ref = "(label_reference (word) @reference_title)",
+    new_command = "(new_command_definition) @new_command"
 }
 
 local M = {}
@@ -31,6 +32,27 @@ M.get_latex_element = function(query_string)
 		end
 	end
 	return result
+end
+
+M.get_new_commands = function ()
+	-- if not M.is_tex() then
+	-- 	print("No es un archivo tex")
+	-- 	return
+	-- end
+    local lines = M.get_latex_element(latex_query["new_command"])
+    local new_commands = {}
+    for _, v in pairs(lines) do
+        local name, command = v:match("(%b{})(%b{})")
+        local current_definition = {}
+        name = name:gsub("{",''):gsub("}", "")
+        command = command:gsub('{',''):gsub("}", "")
+        table.insert(current_definition,name)
+        table.insert(current_definition,command)
+        table.insert(new_commands, current_definition)
+    end
+
+    print(vim.inspect(new_commands))
+    return new_commands
 end
 
 M.get_labels = function ()
