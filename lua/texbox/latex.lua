@@ -6,6 +6,7 @@ local ts = require('nvim-treesitter.ts_utils')
 local latex_query ={
 	label = "(label_definition (curly_group_text (text (word) @label_title)))",
 	ref = "(label_reference (word) @reference_title)",
+    command = "(generic_command) @command",
     new_command = "(new_command_definition) @new_command"
 }
 
@@ -50,8 +51,6 @@ M.get_new_commands = function ()
         table.insert(current_definition,command)
         table.insert(new_commands, current_definition)
     end
-
-    print(vim.inspect(new_commands))
     return new_commands
 end
 
@@ -150,9 +149,16 @@ M.new_command = function ()
 	vim.cmd("%s/"..yank_text.."/\\\\"..command)
 	api.nvim_win_set_cursor(0,{end_row,0})
 	print("New command "..command.." does "..yank_text)
+	local input = vim.fn.input("Wanna add cchar for "..command.."? (yY/nN) > ")
+	if input=="y" then
+		print("")
+		local cchar = vim.fn.input("Cchar > ")
+		require('texbox.utils').new_conceal("\\"..command,cchar)
+	end
 	vim.cmd('normal O '..return_text)
 	vim.cmd(':norm! =j')
 	api.nvim_win_set_cursor(0,current_pos)
+
 	-- local conceal = vim.fn.input("Quieres añadir conceal?[Yy/Nn] ")
 
 	-- if conceal == 'y' then
@@ -161,15 +167,10 @@ M.new_command = function ()
 	-- end
 end
 
-M.add_conceal = function (command)
-	if command==nil then
-		command = string.gsub(string.gsub(vim.fn.getreg('"0'),"\n"," "),"\\","\\\\")
-	end
-	local conceal_icon = vim.fn.input("Comando a mostrar cuando se escriba "..command.." >> ")
-	-- TODO Ahora mismo no distingue si estas o no en mathzone
-	api.nvim_command('syntax match newcommand "'..command..'"')
-	api.nvim_command('syntax match newcommand "'..command..'" conceal cchar='..conceal_icon..' containedin=texMathCmd')
-	api.nvim_command('highlight! link newcommand texMathCmd')
+M.add_conceal = function ()
+	local yank_text = string.gsub(vim.fn.getreg('"0'),"\n"," ")
+	local cchar = vim.fn.input("Cchar for "..yank_text.. "> ")
+	require('texbox.utils').new_conceal(yank_text,cchar)
 end
 
 return M

@@ -17,8 +17,8 @@ local greek = {
 	},
 	{
 		symbol="δ",
-		value="\\delta", 	
-		name="delta", 	
+		value="\\delta",
+		name="delta",
 	},
 	{
 		symbol="ϵ",
