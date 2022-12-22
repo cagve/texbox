@@ -6,3 +6,7 @@ Some latex functionalities for NEOVIM
 	- LateX 
 	- Bibtex 
 3. Telescope
+
+## TODO list
+* [ ] If file does not exists, create (after/syntax/tex.vim)
+* [ ] Visual text for new conceal and command does not work.
