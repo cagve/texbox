@@ -95,6 +95,7 @@ M.create_document = function (text)
 	local new_buf = vim.api.nvim_create_buf(true,false)
 	vim.api.nvim_buf_set_name(new_buf,path.."/"..file)
 	vim.api.nvim_buf_set_lines(new_buf,0,-1,false, text)
+
 	vim.api.nvim_buf_set_option(new_buf,"filetype","tex")
 	vim.api.nvim_buf_set_lines(new_buf,-1,-1,false,{"\\end{document}"})
 end
