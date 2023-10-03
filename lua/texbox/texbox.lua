@@ -39,7 +39,7 @@ end
 M.add_conceal_to_newcommand_list = function ()
 	local parser = vim.treesitter.get_parser(0, "latex")
 	local root = parser:parse()[1]:root()
-	local query_new = vim.treesitter.parse_query('latex', "(new_command_definition (curly_group_command_name (command_name) @new_command))")
+	local query_new = vim.treesitter.query.parse('latex', "(new_command_definition (curly_group_command_name (command_name) @new_command))")
 	local counter = 0
 	for _,match,_ in query_new:iter_matches(root, 0, 0, -1) do
 		for _, node in pairs(match) do
@@ -73,27 +73,13 @@ end
 
 M.create_document = function (text)
 	local name = vim.fn.input("Nombre del archivo tex >> ")
-	local path = ""
-	local split = vim.split(name,"/")
-	local file = split[#split]
-	if string.find(file,".tex") == nil then
-		file = file..".tex"
+	if string.find(name,"tex") == nil then
+		name = name..".tex"
 	end
-	table.remove(split,#split)
-	for _,k in pairs(split) do
-		if path == "" then
-			path = k
-		else
-			path = path.."/"..k
-		end
-	end
-	-- If absolute path
-	if split[1]=="" then
-		path = "/"..path
-	end
+	local file  = "./"..name
 
 	local new_buf = vim.api.nvim_create_buf(true,false)
-	vim.api.nvim_buf_set_name(new_buf,path.."/"..file)
+	vim.api.nvim_buf_set_name(new_buf,file)
 	vim.api.nvim_buf_set_lines(new_buf,0,-1,false, text)
 
 	vim.api.nvim_buf_set_option(new_buf,"filetype","tex")
@@ -101,10 +87,11 @@ M.create_document = function (text)
 end
 
 M.new_command = function (command)
+	local bufnr = 0
 	local parser = vim.treesitter.get_parser(bufnr, "latex")
 	local root = parser:parse()[1]:root()
 	local query_string = "(generic_environment) @env"
-	local query = vim.treesitter.parse_query('latex', query_string)
+	local query = vim.treesitter.query.parse('latex', query_string)
 	local envs = {}
 	local counter = 1
 	for _,match,_ in query:iter_matches(root,bufnr, 0, -1) do
@@ -113,7 +100,7 @@ M.new_command = function (command)
 			counter = counter+1
 		end
 	end
-	local end_row = tonumber(tostring(ts.get_node_range(envs[1])))+1
+	local end_row = tonumber(tostring(vim.treesitter.get_node_range(envs[1])))+1
 	local name = vim.fn.input("Command name for ".. command.." >> ")
 	local return_text = "\\newcommand{\\"..name.."}{"..command.."}"
 	local current_pos = vim.api.nvim_win_get_cursor(0)

@@ -42,4 +42,10 @@ M.get_bib = function ()
 	return table.concat(lines,'\n')
 end
 
+M.extmark = function()
+
+end
+
+
 return M
+

@@ -36,7 +36,7 @@ end
 M.get_latex_element = function(query_string)
 	local parser = vim.treesitter.get_parser(bufnr, "latex")
 	local root = parser:parse()[1]:root()
-	local query = vim.treesitter.parse_query('latex', query_string)
+	local query = vim.treesitter.query.parse_query('latex', query_string)
 	local result = {}
 	local counter = 1
 	for _,match,_ in query:iter_matches(root,bufnr, 0, -1) do
@@ -67,7 +67,7 @@ M.get_preamble = function ()
 	local root = parser:parse()[1]:root()
 
 	local query_string = "(generic_environment) @env"
-	local query = vim.treesitter.parse_query('latex',query_string)
+	local query = vim.treesitter.query.parse_query('latex',query_string)
 	local envs = {}
 	local counter = 1
 	for _,match,_ in query:iter_matches(root,bufnr, 0, -1) do
@@ -78,7 +78,7 @@ M.get_preamble = function ()
 	end
 	-- ts.goto_node(envs[1],false,true) -- En latex el primer enviroment siempre es begin document
 	local start_row = 0 -- La primera línea del preambulo siempre es 0
-	local end_row = tonumber(tostring(ts.get_node_range(envs[1])))+1
+	local end_row = tonumber(tostring(vim.treesitter.get_node_range(envs[1])))+1
 	local text = api.nvim_buf_get_lines(bufnr, start_row,end_row,false)
 	return text
 end
@@ -88,7 +88,7 @@ M.get_section = function () -- NO FUNCIONA 2 VECES
 	local root = parser:parse()[1]:root()
 
 	local current_row = api.nvim_win_get_cursor(0)[1]
-	local query = vim.treesitter.parse_query('latex', '(section)@section')
+	local query = vim.treesitter.query.parse_query('latex', '(section)@section')
 	for _,match,_ in query:iter_matches(root,bufnr, 0, -1) do
 		for _, node in pairs(match) do
 			ts.goto_node(node,false,false)
@@ -157,7 +157,7 @@ M.new_command = function ()
 	local parser = vim.treesitter.get_parser(bufnr, "latex")
 	local root = parser:parse()[1]:root()
 	local query_string = "(generic_environment) @env"
-	local query = vim.treesitter.parse_query('latex', query_string)
+	local query = vim.treesitter.query.parse_query('latex', query_string)
 	local envs = {}
 	local counter = 1
 	for _,match,_ in query:iter_matches(root,bufnr, 0, -1) do
@@ -166,7 +166,7 @@ M.new_command = function ()
 			counter = counter+1
 		end
 	end
-	local end_row = tonumber(tostring(ts.get_node_range(envs[1])))+1
+	local end_row = tonumber(tostring(vim.treesitter.get_node_range(envs[1])))+1
 	-- Obtiene el texto copiado
 	local yank_text = string.gsub(vim.fn.getreg('"0'),"\n"," ")
 	local current_pos = api.nvim_win_get_cursor(0)

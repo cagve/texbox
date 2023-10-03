@@ -2,7 +2,6 @@ package.loaded['texbox.latex'] = nil
 local bufnr = 0
 local api = vim.api
 local ts = require('nvim-treesitter.ts_utils')
-
 local M = {}
 
 M.query_list = {
@@ -20,15 +19,26 @@ M.latex_query ={
 }
 
 
-M.get_latex_element = function(query_string)
+M.get_latex_element = function(query_string, complex)
+	if complex == nil then
+		complex = false
+	end
 	local parser = vim.treesitter.get_parser(bufnr, "latex")
 	local root = parser:parse()[1]:root()
-	local query = vim.treesitter.parse_query('latex', query_string)
+	local query = vim.treesitter.query.parse('latex', query_string)
 	local result = {}
 	local counter = 1
 	for _,match,_ in query:iter_matches(root,bufnr, 0, -1) do
 		for _, node in pairs(match) do
-			result[counter] = vim.treesitter.query.get_node_text(node,0)
+			if complex == true then
+				local text = vim.treesitter.get_node_text(node,0)
+				local line = node:range()+1
+				result[counter] = {
+					text = text,
+					line = line}
+			else
+				result[counter] = vim.treesitter.get_node_text(node,0)
+			end
 			counter = counter+1
 		end
 	end
@@ -39,7 +49,8 @@ M.get_ts_newcommands = function ()
     local lines = M.get_latex_element(M.latex_query["new_command"])
     local new_commands = {}
     for _, v in pairs(lines) do
-        local name, command = v:match("(%b{})(%b{})")
+        -- local name, command = v:match("(%b{}).*(%b{})")
+        local name, command = v:match("(%b{})(.*)")
         local current_definition = {}
         name = name:gsub("{",''):gsub("}", "")
         command = command:gsub('{',''):gsub("}", "")
@@ -51,7 +62,18 @@ M.get_ts_newcommands = function ()
 end
 
 M.get_ts_labels = function ()
-	return M.get_latex_element(M.latex_query["label"])
+	local labels = {}
+	local results = M.get_latex_element(M.latex_query["label"], true)
+	for _,result in pairs(results) do
+		local entry = {
+			text = result.text,
+			line = result.line,
+			path = vim.api.nvim_buf_get_name(0)
+
+		}
+		table.insert(labels, entry)
+	end
+		return labels
 end
 
 
@@ -60,7 +82,7 @@ M.get_ts_preamble = function ()
 	local root = parser:parse()[1]:root()
 
 	local query_string = "(generic_environment) @env"
-	local query = vim.treesitter.parse_query('latex',query_string)
+	local query = vim.treesitter.query.parse('latex',query_string)
 	local envs = {}
 	local counter = 1
 	for _,match,_ in query:iter_matches(root,bufnr, 0, -1) do
@@ -71,7 +93,7 @@ M.get_ts_preamble = function ()
 	end
 	-- ts.goto_node(envs[1],false,true) -- En latex el primer enviroment siempre es begin document
 	local start_row = 0 -- La primera línea del preambulo siempre es 0
-	local end_row = tonumber(tostring(ts.get_node_range(envs[1])))+1
+	local end_row = tonumber(tostring(vim.treesitter.get_node_range(envs[1])))+1
 	local text = api.nvim_buf_get_lines(bufnr, start_row,end_row,false)
 	return text
 end
@@ -81,7 +103,7 @@ M.get_ts_section = function () -- NO FUNCIONA 2 VECES
 	local root = parser:parse()[1]:root()
 
 	local current_row = api.nvim_win_get_cursor(0)[1]
-	local query = vim.treesitter.parse_query('latex', '(section)@section')
+	local query = vim.treesitter.query.parse('latex', '(section)@section')
 	for _,match,_ in query:iter_matches(root,bufnr, 0, -1) do
 		for _, node in pairs(match) do
 			ts.goto_node(node,false,false)
@@ -90,7 +112,7 @@ M.get_ts_section = function () -- NO FUNCIONA 2 VECES
 			local end_row = api.nvim_win_get_cursor(0)[1]
 			if current_row >= start_row and current_row <= end_row then
 				local title_node = ts.get_named_children(ts.get_named_children(node)[1])[1] -- EL SEGUNDO HIJO ES EL TÍTULO DE LA SECCIÓN
-				local title = vim.treesitter.query.get_node_text(title_node,0)
+				local title = vim.treesitter.get_node_text(title_node,0)
 				print("Extrayendo sección: "..title)
 				local text = api.nvim_buf_get_lines(bufnr, start_row,end_row,false)
 				return text
@@ -103,12 +125,12 @@ M.get_ts_bibdata = function (source, querystr)
 	local parser = vim.treesitter.get_string_parser(source, "bibtex")
 	local tree = parser:parse()[1]
 	local root = tree:root()
-	local query = vim.treesitter.parse_query('bibtex', querystr)
+	local query = vim.treesitter.query.parse('bibtex', querystr)
 	local result = {}
 	local counter = 1
 	for _,match,_ in query:iter_matches(root,source, 0, -1) do
 		for _, node in pairs(match) do
-			result[counter] = vim.treesitter.query.get_node_text(node,source)
+			result[counter] = vim.treesitter.get_node_text(node,source)
 			counter = counter+1
 		end
 	end
@@ -120,17 +142,45 @@ M.get_ts_entry_by_key = function (source, key)
 	local parser = vim.treesitter.get_string_parser(source, "bibtex")
 	local tree = parser:parse()[1]
 	local root = tree:root()
-	local query = vim.treesitter.parse_query('bibtex', querystr)
+	local query = vim.treesitter.query.parse('bibtex', querystr)
 	local result = {}
 	local counter = 1
 	for _,match,_ in query:iter_matches(root,source, 0, -1) do
 		for _, node in pairs(match) do
 			-- print(vim.inspect(q.get_node_text(node,bibfile)))
-			result[counter] = vim.treesitter.query.get_node_text(node,source)
+			result[counter] = vim.treesitter.get_node_text(node,source)
 			counter = counter+1
 		end
 	end
 	return result
+end
+
+M.get_headings = function ()
+    local headings = {}
+    local matches = {
+        'part',
+        'chapter',
+        'section',
+        'subsection',
+        'subsubsection',
+        'paragraph',
+        'subparagraph',
+    }
+
+	for _,type in pairs(matches) do
+		local results = M.get_latex_element("("..type.."(curly_group (text) @section))", true)
+		for _,result in pairs(results) do
+			local entry = {
+				type = type,
+				text = result.text,
+				line = result.line,
+				path = vim.api.nvim_buf_get_name(0)
+				
+			}
+			table.insert(headings, entry)
+		end
+	end
+    return headings
 end
 
 
