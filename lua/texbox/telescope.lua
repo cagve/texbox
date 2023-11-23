@@ -1,13 +1,9 @@
 local pickers = require "telescope.pickers"
 local actions = require "telescope.actions"
-local action_state = require "telescope.actions.state"
 local entry_display = require("telescope.pickers.entry_display")
 local action_state = require("telescope.actions.state")
-local actions_set = require('telescope.actions.set')
 local finders = require "telescope.finders"
 local conf = require("telescope.config").values
-local q = require('vim.treesitter.query')
-local t = require('vim.treesitter.languagetree')
 local ts_manager = require('texbox.ts_manager')
 local util = require('texbox.utils')
 local texbox = require('texbox.texbox')
@@ -72,78 +68,5 @@ M.telescope_bib = function(opts)
 	}):find()
 end
 
-M.telescope_newcommands = function (opts)
-    opts = opts or {}
-	pickers.new({
-		sorter = conf.generic_sorter(opts),
-		prompt_title = "New commands",
-		finder = finders.new_table({
-            results = ts_manager.get_ts_newcommands(),
-			entry_maker = function(entry)
-                local len = string.len(entry[1])
-                local width = 40
-                local spaces = string.rep(" ", width-len)
-				return {
-					value = entry[1],
-					display = entry[1]..spaces..entry[2],
-					ordinal = entry[1],
-				}
-			end
-        }),
-		attach_mappings = function(prompt_bufnr,map)
-			actions.select_default:replace(function()
-				actions.close(prompt_bufnr)
-			end)
-			return true
-		end,
-	}):find()
-end
-
-M.telescope_labels = function(opts)
-	opts = opts or {}
-	local labels = ts_manager.get_ts_labels()
-	pickers.new(opts, {
-		prompt_title = 'Select a label',
-		results_title = 'Labels',
-		finder = finders.new_table {
-			results = labels,
-			entry_maker = function(entry)
-				return {
-					value = entry.text,
-					display = entry.text,
-					ordinal = entry.text,
-					filename = entry.path,
-					lnum = entry.line
-				}
-			end
-		},
-		previewer = conf.qflist_previewer(opts),
-		sorter = conf.file_sorter(opts),
-	}):find()
-end
-
-M.telescope_headings = function(opts)
-	opts = {}
-	local headings = ts_manager.get_headings()
-	pickers.new(opts, {
-		prompt_title = 'Select a heading',
-		results_title = 'Headings',
-		finder = finders.new_table {
-			results = headings,
-			entry_maker = function(entry)
-				return {
-					value = entry,
-					display = entry.type ..": "..entry.text,
-					ordinal = entry.type ..": "..entry.text,
-					filename = entry.path,
-					lnum = entry.line
-				}
-			end
-		},
-		previewer = conf.qflist_previewer(opts),
-		sorter = conf.file_sorter(opts),
-	})
-	:find()
-end
 
 return M
