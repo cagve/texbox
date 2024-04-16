@@ -17,12 +17,13 @@ M.bib_to_telescope = function (source)
 		local row = {}
 		row[1] = ts_manager.get_ts_bibdata(entry, ts_manager.query_list["key"])[1]
 		row[2] = ts_manager.get_ts_bibdata(entry, ts_manager.query_list["title"])[2]:gsub("{",""):gsub("}","")
-		local author = ts_manager.get_ts_bibdata(entry, ts_manager.query_list["author"])[2]
-		if author == nil then
-			row[3] = "unkown"
-		else
-			row[3] = author:gsub("{",""):gsub("}","")
-		end
+		row[3] = ts_manager.get_ts_bibdata(entry, ts_manager.query_list["key"])[2]:gsub("{",""):gsub("}","")
+		-- row[3] = ts_manager.get_ts_bibdata(entry, ts_manager.query_list["author"])[2]:gsub("{",""):gsub("}","")
+		telescope_entry[index] = row
+	end
+	return telescope_entry
+end
+
 		telescope_entry[index] = row
 	end
 	return telescope_entry
