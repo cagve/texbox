@@ -3,36 +3,51 @@ local ts_manager = require'texbox.ts_manager'
 local ts = require('nvim-treesitter.ts_utils')
 local M = {}
 
-M.new_conceal = function (command, cchar)
+M.new_conceal = function (command)
 	-- Check if input has \ or not
-	if string.find(command,'\\') then
-		command = '\\'..command
-	else
-	end
 
-	local syntax ="syn match texMathSymbol '"..command.."' contained conceal cchar="..cchar
-	local file = os.getenv( "HOME" ).."/.config/nvim/after/syntax/tex.vim"
-	local lines = {}
-	for line in io.lines(file) do
-		lines[#lines + 1] = line
-	end
-	vim.cmd(syntax)
-	if util.check_if_exists(lines,command) then
-		local input = vim.fn.input("Conceal for "..command.." already exists. Wanna overwrite? ")
-		if input=="y"then
-			vim.cmd(":e "..file)
-			vim.cmd(":%s/^.*"..command..".*/"..syntax)
-			vim.cmd(":w "..file)
-			vim.cmd(":bdelete")
-			return
-		end
-	else
-		local f = io.open(file, "a")
-		io.output(f)
-		io.write(syntax)
-		io.write("\n")
-		io.close(f)
-	end
+	-- ((scoped_identifier) @hola (#eq? @hola "g:vimtex_syntax_custom_cmds"))
+
+	local file = os.getenv( "HOME" ).."/.config/nvim/after/plugin/vimtex.vim"
+	local buffer = vim.api.nvim_create_buf(true, false)
+	if vim.api.nvim_buf_is_valid(buffer) then
+        local file_content = {}
+        local file = io.open(file, "r")
+        if file then
+            for line in file:lines() do
+                table.insert(file_content, line)
+            end
+            file:close()
+        else
+            print("Error: Cannot open file " .. file)
+            return
+        end
+        vim.api.nvim_buf_set_lines(buffer, 0, -1, false, file_content)
+    else
+        print("Error: Buffer " .. buffer .. " is not valid")
+    end
+	-- Set the buffer type to vim file
+	vim.api.nvim_buf_set_option(buffer, 'filetype', 'vim')
+
+	local parser = vim.treesitter.get_parser(buffer, "vim")
+	local root = parser:parse()[1]:root()
+	local query = vim.treesitter.query.parse('vim', '((scoped_identifier) @hola (#eq? @hola "g:vimtex_syntax_custom_cmds"))')
+	
+
+	local cchar = vim.fn.input("Which char do you want for "..command.."?  ")
+	local math = vim.fn.input("Is "..cchar.." a math command (1/0)? ")
+
+	local conceal = '\\ {"name": "'..command..'", "mathmode": "'..math..'", "concealchar": "'..cchar..'"}, '
+    for _, match, _ in query:iter_matches(root, buffer, 0, -1) do
+        for id, node in pairs(match) do
+            local node_start_row, node_start_col, node_end_row, node_end_col = node:range()
+			vim.api.nvim_buf_set_lines(buffer, node_end_row + 1, node_end_row + 1, false, {conceal})
+        end
+    end
+	vim.api.nvim_buf_call(buffer, function()
+		vim.cmd('write! ' .. file)
+		vim.cmd('silent! noautocmd bwipeout!')
+	end)
 end
 
 
@@ -121,17 +136,14 @@ end
 
 M.new_conceal_from_yank = function ()
 	local yank_text = string.gsub(vim.fn.getreg('"0'),"\n"," ")
-	local input = vim.fn.input("Cchar for "..yank_text.." >> ")
-	if input ~= "" then
-		M.new_conceal(yank_text, input)
-	end
+	M.new_conceal(yank_text)
 end
 
 M.new_conceal_from_visual = function ()
 	local visual_text = util.get_visual_text()
 	local input = vim.fn.input("Cchar for "..visual_text[1].." >> ")
 	if input ~= "" then
-		M.new_conceal(visual_text[1], input)
+		M.new_conceal(visual_text[1])
 	end
 end
 
